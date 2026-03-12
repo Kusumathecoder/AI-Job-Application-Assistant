@@ -7,17 +7,11 @@ from typing import List
 from pypdf import PdfReader
 import io
 
-# -------------------------
-# Initialize LLM
-# -------------------------
 llm = ChatOllama(
     model="mistral",
     temperature=0
 )
 
-# -------------------------
-# Pydantic Models
-# -------------------------
 
 class JobDetails(BaseModel):
     job_title: str
@@ -33,18 +27,12 @@ class ResumeSuggestions(BaseModel):
     overall_fit_summary: str
 
 
-# -------------------------
-# Parsers
-# -------------------------
 
 job_parser = PydanticOutputParser(pydantic_object=JobDetails)
 resume_parser = PydanticOutputParser(pydantic_object=ResumeSuggestions)
 cover_letter_parser = StrOutputParser()
 
 
-# -------------------------
-# Prompts
-# -------------------------
 
 job_prompt = PromptTemplate(
     template="""
@@ -111,18 +99,11 @@ Return only the cover letter text.
     input_variables=["job_title", "job_details", "resume"],
 )
 
-# -------------------------
-# Chains
-# -------------------------
+
 
 job_chain = job_prompt | llm | job_parser
 resume_chain = resume_prompt | llm | resume_parser
 cover_letter_chain = cover_letter_prompt | llm | cover_letter_parser
-
-
-# -------------------------
-# Streamlit UI
-# -------------------------
 
 st.set_page_config(page_title="AI Job Assistant", layout="wide")
 st.title("🤖 AI Job Application Assistant (Local - Ollama)")
@@ -153,18 +134,18 @@ if st.button("🚀 Analyze & Generate"):
     else:
         with st.spinner("Analyzing with local AI model..."):
 
-            # Feature 1
+        
             job_details = job_chain.invoke({
                 "job_description": job_description
             })
 
-            # Feature 2
+            
             suggestions = resume_chain.invoke({
                 "job_details": job_details,
                 "resume": resume_text
             })
 
-            # Feature 3
+            
             cover_letter = cover_letter_chain.invoke({
                 "job_title": job_details.job_title,
                 "job_details": job_details,
@@ -186,4 +167,5 @@ if st.button("🚀 Analyze & Generate"):
             "⬇ Download Cover Letter",
             cover_letter,
             file_name="cover_letter.txt"
+
         )
